@@ -103,7 +103,7 @@ The codebase is structured to support future extensions such as:
 
 ---
 
-## Future Improvements (Optional)
+## Future Improvements
 - Add unit tests for pricing logic
 - Persist quotes to file or database
 - Introduce a graphical or web-based UI
