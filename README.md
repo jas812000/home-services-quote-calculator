@@ -85,6 +85,8 @@ Run from the project root:
 ```bash
 python app.py
 
+---
+
 ## Engineering Focus
 This project emphasizes:
 - Object-oriented design
@@ -98,6 +100,8 @@ The codebase is structured to support future extensions such as:
 - Persistent storage
 - API-based quote generation
 - Automated testing
+
+---
 
 ## Future Improvements (Optional)
 - Add unit tests for pricing logic
