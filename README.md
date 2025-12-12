@@ -84,7 +84,7 @@ Run from the project root:
 
 ```bash
 python app.py
-
+```
 ---
 
 ## Engineering Focus
