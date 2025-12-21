@@ -1,6 +1,13 @@
-# Maven
-target/
-*.log
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
 
 # IntelliJ / JetBrains
 .idea/
@@ -12,10 +19,11 @@ out/
 # macOS
 .DS_Store
 
-# VS Code (optional)
+# VS Code
 .vscode/
 
 # OS / temp
 *.swp
 *~
 *.save
+
