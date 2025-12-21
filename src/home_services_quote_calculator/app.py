@@ -33,11 +33,10 @@ def main():
             yard = ui.build_yard_quote(age)
             ui.print_total("Combined", house.total() + yard.total())
 
-        again = input("\nRun another quote? (y/n): ").strip().lower()
-        if again != "y":
+        if not ui.read_yes_no("\nRun another quote? (y/n): "):
             print("Goodbye!")
             return
-
+        
 
 if __name__ == "__main__":
     main()

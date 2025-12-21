@@ -60,6 +60,16 @@ class ConsoleUI:
             except ValueError:
                 print("Please enter a valid integer.")
 
+    def read_yes_no(self, prompt: str) -> bool:
+        """Read a yes/no response. Returns True for yes, False for no."""
+        while True:
+            resp = input(prompt).strip().lower()
+            if resp in {"y", "yes"}:
+                return True
+            if resp in {"n", "no"}:
+                return False
+            print("Please enter y/yes or n/no.")
+
     def ask_service_choice(self) -> int:
         """Prompt user to select service type."""
         print("House Cleaning = 1")
@@ -103,3 +113,6 @@ class ConsoleUI:
     def print_total(self, label: str, amount: float):
         """Print formatted total."""
         print(f"\n{label} total: ${amount:.2f}")
+
+
+    
