@@ -1,55 +1,61 @@
 # Home Services Quote Calculator
 
-A modular Python application that calculates cost estimates for residential house cleaning and yard services using structured pricing rules, surcharges, discounts, and tax calculations.
+A modular Python command-line application that calculates cost estimates for residential **house cleaning** and **yard 
+services** using structured pricing rules, surcharges, discounts, and tax calculations.
 
-This project demonstrates object-oriented design, separation of concerns, and maintainable system architecture in a small-scale service estimation domain.
+This project demonstrates **object-oriented design**, **separation of concerns**, and **testable system architecture** in a 
+small-scale service estimation domain. The application is packaged as a real Python project, includes automated tests, and is 
+continuously validated via GitHub Actions.
 
 ---
 
 ## Problem Overview
 
-Service-based businesses often rely on ad-hoc or spreadsheet-driven estimates that are difficult to maintain as pricing rules grow in complexity.  
-This project models a simplified service-quote engine that calculates accurate cost estimates based on:
+Service-based businesses often rely on ad-hoc or spreadsheet-driven estimates that become difficult to maintain as pricing rules 
+grow in complexity.
+
+This project models a simplified **service quote engine** that generates deterministic cost estimates based on:
 
 - Property size
 - Selected services
 - Tiered pricing rules
-- Labor costs
+- Labor costs derived from validated time ranges
 - Surcharges
 - Senior discounts
 - Sales tax
 
-The system is designed to be extensible and readable, rather than optimized for minimal code length.
+The system is designed for **clarity, correctness, and extensibility**, rather than minimal code size.
 
 ---
 
 ## Architecture & Design
 
-The application is structured using clear separation of responsibilities:
+The application follows a **layered, domain-driven structure** with explicit responsibility boundaries:
 ```
-service-quote-calculator/
-│
-├── app.py # Application entry point
-├── ui.py # Console input/output handling
+src/home_services_quote_calculator/
+├── app.py # Application orchestration and menu loop
+├── ui.py # Console input/output and validation
 ├── pricing.py # Centralized pricing rules and constants
-├── quotes.py # Quote calculation logic
-└── models.py # Simple data models
+├── quotes.py # Domain quote models and calculations
+└── models.py # Shared value objects (e.g., TimeHM)
 ```
-
 
 ### Key Design Decisions
 
-- **Separation of concerns**  
-  User interaction, pricing rules, and calculations are isolated into dedicated modules.
+**Separation of concerns**  
+User interaction, pricing rules, and business calculations are isolated into dedicated modules.
 
-- **No global state**  
-  All data flows through objects, improving testability and maintainability.
+**No global state**  
+All data flows through objects, improving testability and predictability.
 
-- **Rule centralization**  
-  Pricing rules are defined in a single location (`pricing.py`) to avoid duplication.
+**Rule centralization**  
+Pricing logic is defined in one place (`pricing.py`) to avoid duplication and drift.
 
-- **Object-oriented modeling**  
-  Each quote type encapsulates its own calculation logic.
+**Domain-driven modeling**  
+Each quote type encapsulates its own calculations and validation rules.
+
+**Defensive validation**  
+Invalid domain states (e.g., end time before start time) are rejected at object creation.
 
 ---
 
@@ -61,63 +67,79 @@ Handles:
 - Per-room service costs
 - Square-footage surcharges
 - Optional thorough-cleaning fees
-- Senior discounts and tax
+- Senior discounts and sales tax
 
 ### `YardServiceQuote`
 Handles:
 - Mowing, edging, and shrub services
-- Labor time calculation
+- Labor cost derived from validated time ranges
 - Yard-size-based hourly surcharges
-- Senior discounts and tax
+- Senior discounts and sales tax
 
 ### `PriceRules`
 Defines all pricing constants and rate calculations used throughout the system.
 
 ---
 
-## How to Run
+## Build & Run
 
-Requirements:
+### Requirements
 - Python 3.9+
 
-Run from the project root:
-
+### Setup
 ```bash
-python app.py
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
 ```
+
+---
+
+## Run
+```bash
+python -m home_services_quote_calculator
+```
+
+---
+
+## Testing
+The project includes a fully automated pytest suite:
+- Unit tests for domain calculations
+- Validation tests for edge cases and error conditions
+- CLI smoke tests verifying startup, exit behavior, and output
+
+### Run tests
+```bash
+pytest
+```
+All tests pass on a clean checkout and are automatically executed in CI.
+
 ---
 
 ## Engineering Focus
 This project emphasizes:
 - Object-oriented design
-- Modular architecture
-- Readability and maintainability
+- Modular, maintainable architecture
 - Business-rule-driven computation
-- Defensive input handling
-- Clear data modeling
-The codebase is structured to support future extensions such as:
-- GUI or web interfaces
+- Defensive input and domain validation
+- Deterministic, testable logic
+- Professional Python packaging
+- Continuous integration with automated testing
+
+The codebase is intentionally structured to support future extensions such as:
+- Web or GUI interfaces
 - Persistent storage
 - API-based quote generation
-- Automated testing
-
----
-
-## Future Improvements
-- Add unit tests for pricing logic
-- Persist quotes to file or database
-- Introduce a graphical or web-based UI
-- Externalize pricing rules to configuration files
+- Externalized configuration
 
 ---
 
 ## License
-© 2025 James Stevens. All rights reserved.
-
-This source code is provided for educational, evaluation, and portfolio review purposes.
-Permission is granted to clone and run the code locally for non-commercial review.
-
-No permission is granted to copy, modify, redistribute, or use this code in
-commercial or production systems without explicit written consent from the author.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
+
+
+
+
