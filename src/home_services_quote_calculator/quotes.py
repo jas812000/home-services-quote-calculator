@@ -107,3 +107,8 @@ class YardServiceQuote:
     def total(self) -> float:
         """Final total including discount and tax."""
         return self.subtotal() - self.discount() + self.tax()
+
+    def __post_init__(self) -> None:
+        if self.end.as_hours() <= self.start.as_hours():
+            raise ValueError("End time must be after start time.")
+
