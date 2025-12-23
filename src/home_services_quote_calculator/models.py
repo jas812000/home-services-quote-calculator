@@ -29,6 +29,10 @@ class TimeHM:
         """
         Convert the time to decimal hours.
 
+        Assumes:
+            - hour is in the range 0–23
+            - minute is in the range 0–59
+
         Returns:
             float: Time represented as fractional hours.
         """
