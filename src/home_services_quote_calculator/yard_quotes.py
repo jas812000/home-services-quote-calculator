@@ -129,3 +129,11 @@ class YardServiceQuote:
         items.append(("Tax", self.tax()))
 
         return items
+    
+    def __post_init__(self) -> None:
+        start_minutes = self.start.hour * 60 + self.start.minute
+        end_minutes = self.end.hour * 60 + self.end.minute
+        if end_minutes <= start_minutes:
+            raise ValueError("end must be after start")
+   
+
