@@ -8,6 +8,7 @@ It is responsible for all user interaction (printing menus, reading input,
 and displaying results) so that business logic remains separate.
 """
 
+from typing import Optional
 from .house_quotes import HouseCleaningQuote
 from .yard_quotes import YardServiceQuote
 from .models import TimeHM
@@ -130,7 +131,7 @@ class ConsoleUI:
 
         return self.read_int("Selection: ", allowed={1, 2, 3, 9})
 
-    def build_house_quote(self, age: int) -> HouseCleaningQuote:
+    def build_house_quote(self, age: int) -> Optional[HouseCleaningQuote]:
         """
         Collect inputs and create a HouseCleaningQuote.
 
@@ -145,6 +146,7 @@ class ConsoleUI:
         carpet_rooms = self.read_int("Carpet rooms: ", 0)
         bathrooms = self.read_int("Bathrooms: ", 0)
         dust_rooms = self.read_int("Rooms to dust: ", 0)
+       
 
         return HouseCleaningQuote(
             house_sqft=house_sqft,
@@ -152,10 +154,10 @@ class ConsoleUI:
             bathrooms=bathrooms,
             dust_rooms=dust_rooms,
             thorough=thorough,
-            is_senior=age >= 65,
+            is_senior=age >= 65
         )
 
-    def build_yard_quote(self, age: int) -> YardServiceQuote:
+    def build_yard_quote(self, age: int) -> Optional[YardServiceQuote]:
         """
         Collect inputs and create a YardServiceQuote.
 
@@ -168,22 +170,28 @@ class ConsoleUI:
         yard_sqft = self.read_int("Yard square footage: ", 1)
         shrubs = self.read_int("Number of shrubs: ", 0)
 
-        start = TimeHM(
-            self.read_int("Start hour: ", 0, 23),
-            self.read_int("Start minute: ", 0, 59),
-        )
-        end = TimeHM(
-            self.read_int("End hour: ", 0, 23),
-            self.read_int("End minute: ", 0, 59),
-        )
+        while True:
+            start = TimeHM(
+                self.read_int("Start hour: ", 0, 23),
+                self.read_int("Start minute: ", 0, 59),
+            )
+            end = TimeHM(
+                self.read_int("End hour: ", 0, 23),
+                self.read_int("End minute: ", 0, 59),
+            )
 
-        return YardServiceQuote(
-            yard_sqft=yard_sqft,
-            shrubs=shrubs,
-            start=start,
-            end=end,
-            is_senior=age >= 65,
-        )
+            try:        
+                return YardServiceQuote(
+                    yard_sqft=yard_sqft,
+                    shrubs=shrubs,
+                    start=start,
+                    end=end,
+                    is_senior=age >= 65,
+                )
+            except ValueError as e:
+                print(f"\nInvalid yard time range:")
+                print(f"End time must be after start time.")
+                print(f"Try again.\n")
 
     @staticmethod
     def print_itemized(title: str, items: list[tuple[str, float]]) -> None:

@@ -28,3 +28,6 @@ out/
 *.save
 
 *.egg-info/
+
+# IDE
+.idea/
