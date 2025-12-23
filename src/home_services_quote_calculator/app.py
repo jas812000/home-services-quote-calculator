@@ -22,31 +22,40 @@ def main() -> None:
     Returns:
         None
     """
-    ui = ConsoleUI()
-    ui.show_welcome()
+    ui_obj = ConsoleUI()
+    ui_obj.show_welcome()
 
     while True:
-        ui.show_services()
-        choice = ui.ask_service_choice()
+        ui_obj.show_services()
+        choice = ui_obj.ask_service_choice()
 
         if choice == 9:
             print("Goodbye!")
             return
 
-        age = ui.read_int("Age: ", 0, 120)
+        age = ui_obj.read_int("Age: ", 0, 120)
 
         if choice == 1:
-            house = ui.build_house_quote(age)
-            ui.print_total("House", house.total())
+            house = ui_obj.build_house_quote(age)
+            ui_obj.print_itemized("House", house.items())
+            ui_obj.print_total("House", house.total())
         elif choice == 2:
-            yard = ui.build_yard_quote(age)
-            ui.print_total("Yard", yard.total())
+            yard = ui_obj.build_yard_quote(age)
+            ui_obj.print_itemized("Yard", yard.items())
+            ui_obj.print_total("Yard", yard.total())
         elif choice == 3:
-            house = ui.build_house_quote(age)
-            yard = ui.build_yard_quote(age)
-            ui.print_total("Combined", house.total() + yard.total())
+            house = ui_obj.build_house_quote(age)
+            yard = ui_obj.build_yard_quote(age)
 
-        if not ui.read_yes_no("\nRun another quote? (y/n): "):
+            ui_obj.print_itemized("House", house.items())
+            ui_obj.print_total("House", house.total())
+
+            ui_obj.print_itemized("Yard", yard.items())
+            ui_obj.print_total("Yard", yard.total())
+
+            ui_obj.print_total("Combined", house.total() + yard.total())
+
+        if not ui_obj.read_yes_no("\nRun another quote? (y/n): "):
             print("Goodbye!")
             return
 

@@ -108,3 +108,24 @@ class YardServiceQuote:
             float: Final price including discounts and tax.
         """
         return self.subtotal() - self.discount() + self.tax()
+
+    def items(self) -> list[tuple[str, float]]:
+        """
+        Return an itemized cost breakdown for the yard service quote.
+
+        Returns:
+            list[tuple[str, float]]: Line items and their costs.
+        """
+        items: list[tuple[str, float]] = [
+            ("Mowing", PriceRules.mowing_cost(self.yard_sqft)),
+            ("Edging", PriceRules.edging_cost(self.yard_sqft)),
+            ("Shrub pruning", PriceRules.shrub_cost(self.shrubs)),
+            ("Labor", self.labor_cost()),
+        ]
+
+        if self.is_senior:
+            items.append(("Senior discount", -self.discount()))
+
+        items.append(("Tax", self.tax()))
+
+        return items

@@ -98,3 +98,31 @@ class HouseCleaningQuote:
             float: Final price including fees, discounts, and tax.
         """
         return (self.subtotal() + self.service_fee()) - self.discount() + self.tax()
+
+    def items(self) -> list[tuple[str, float]]:
+        """
+        Return an itemized cost breakdown for the house cleaning quote.
+
+        Returns:
+            list[tuple[str, float]]: Line items and their costs.
+        """
+        t = self.tier()
+        items: list[tuple[str, float]] = [
+            ("Carpet cleaning", self.carpet_rooms * PriceRules.carpet_rate(t)),
+            ("Bathroom cleaning", self.bathrooms * PriceRules.bathroom_rate(t)),
+            ("Dusting", self.dust_rooms * PriceRules.dust_rate(t)),
+        ]
+
+        sqft_surcharge = PriceRules.house_sqft_surcharge(self.house_sqft)
+        if sqft_surcharge > 0:
+            items.append(("Large house surcharge", sqft_surcharge))
+
+        if self.thorough:
+            items.append(("Thorough cleaning fee", self.service_fee()))
+
+        if self.is_senior:
+            items.append(("Senior discount", -self.discount()))
+
+        items.append(("Tax", self.tax()))
+
+        return items

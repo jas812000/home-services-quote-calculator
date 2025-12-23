@@ -186,6 +186,20 @@ class ConsoleUI:
         )
 
     @staticmethod
+    def print_itemized(title: str, items: list[tuple[str, float]]) -> None:
+        """
+        Print an itemized list of charges.
+
+        Args:
+            title (str): Title of the quote section.
+            items (list[tuple[str, float]]): Itemized charges as (label, amount).
+        """
+        print(f"\n{title} breakdown:")
+        for label, amount in items:
+            sign = "-" if amount < 0 else ""
+            print(f"  {label:<25} {sign}${abs(amount):.2f}")
+
+    @staticmethod
     def print_total(label: str, amount: float) -> None:
         """
         Print a formatted total amount.
