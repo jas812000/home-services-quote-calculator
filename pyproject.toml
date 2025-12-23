@@ -7,7 +7,7 @@ name = "home-services-quote-calculator"
 version = "0.1.0"
 description = "CLI quote calculator for house cleaning and yard services."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "James Stevens" }]
 keywords = ["cli", "pricing", "quotes", "python"]
