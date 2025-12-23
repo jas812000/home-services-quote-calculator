@@ -2,13 +2,26 @@
 app.py
 
 Program entry point.
-Coordinates UI and quote calculations.
+
+This module coordinates the console user interface and quote calculation
+logic. It drives the main application loop and handles high-level program
+flow.
 """
 
 from .ui import ConsoleUI
 
 
-def main():
+def main() -> None:
+    """
+    Run the application main loop.
+
+    This function initializes the console UI, prompts the user for service
+    selections and input data, generates service quotes, and displays
+    calculated totals. The loop continues until the user chooses to exit.
+
+    Returns:
+        None
+    """
     ui = ConsoleUI()
     ui.show_welcome()
 
@@ -36,7 +49,7 @@ def main():
         if not ui.read_yes_no("\nRun another quote? (y/n): "):
             print("Goodbye!")
             return
-        
+
 
 if __name__ == "__main__":
     main()
