@@ -110,21 +110,37 @@ class PriceRules:
         """
         Calculate the mowing cost based on yard size.
 
+        Mowing includes a base service charge plus an additional charge
+        for each 1,000 square feet of yard area, rounded up.
+
         Args:
             yard_sqft (int): Total square footage of the yard.
 
         Returns:
             float: Total mowing cost.
         """
-        return yard_sqft * 6.0
+        base_charge = 45.0
+        size_increments = math.ceil(yard_sqft / 1000)
+
+        return base_charge + (size_increments * 15.0)
+
+    @staticmethod
+    def estimated_yard_perimeter(yard_sqft: int) -> float:
+        """
+        Estimate yard perimeter assuming an approximately square yard.
+
+        Args:
+            yard_sqft (int): Total square footage of the yard.
+
+        Returns:
+            float: Estimated perimeter in linear feet.
+        """
+        return math.sqrt(yard_sqft) * 4
 
     @staticmethod
     def edging_cost(yard_sqft: int) -> float:
         """
         Calculate edging cost based on an estimated yard perimeter.
-
-        The yard is assumed to be approximately square. The perimeter
-        is estimated using the square root of the area.
 
         Args:
             yard_sqft (int): Total square footage of the yard.
@@ -132,8 +148,7 @@ class PriceRules:
         Returns:
             float: Total edging cost.
         """
-        perimeter = math.sqrt(yard_sqft) * 4
-        return perimeter * 4.0
+        return PriceRules.estimated_yard_perimeter(yard_sqft) * 4.0
 
     @staticmethod
     def shrub_cost(shrubs: int) -> float:

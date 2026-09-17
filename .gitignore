@@ -9,25 +9,20 @@ build/
 .venv/
 venv/
 
-# IntelliJ / JetBrains
+# JetBrains
 .idea/
 *.iml
 *.ipr
 *.iws
 out/
 
-# macOS
-.DS_Store
-
 # VS Code
 .vscode/
 
-# OS / temp
+# macOS
+.DS_Store
+
+# Temporary files
 *.swp
 *~
 *.save
-
-*.egg-info/
-
-# IDE
-.idea/

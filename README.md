@@ -1,18 +1,14 @@
 # Home Services Quote Calculator
 
-A modular Python command-line application that calculates cost estimates for residential **house cleaning** and **yard 
-services** using structured pricing rules, surcharges, discounts, and tax calculations.
+A modular Python command-line application that calculates cost estimates for residential **house cleaning** and **yard services** using structured pricing rules, surcharges, discounts, labor costs, and tax calculations.
 
-This project demonstrates **object-oriented design**, **separation of concerns**, and **testable system architecture** in a 
-small-scale service estimation domain. The application is packaged as a real Python project, includes automated tests, and is 
-continuously validated via GitHub Actions.
+This project demonstrates **object-oriented design**, **separation of concerns**, **domain validation**, **automated testing**, and **Python packaging** in a small service-estimation domain. The application includes an installable command-line entry point and is continuously validated through GitHub Actions.
 
 ---
 
 ## Problem Overview
 
-Service-based businesses often rely on ad-hoc or spreadsheet-driven estimates that become difficult to maintain as pricing rules 
-grow in complexity.
+Service-based businesses often rely on ad-hoc or spreadsheet-driven estimates that become difficult to maintain as pricing rules grow in complexity.
 
 This project models a simplified **service quote engine** that generates deterministic cost estimates based on:
 
@@ -20,7 +16,7 @@ This project models a simplified **service quote engine** that generates determi
 - Selected services
 - Tiered pricing rules
 - Labor costs derived from validated time ranges
-- Surcharges
+- Property-size surcharges
 - Senior discounts
 - Sales tax
 
@@ -30,116 +26,207 @@ The system is designed for **clarity, correctness, and extensibility**, rather t
 
 ## Architecture & Design
 
-The application follows a **layered, domain-driven structure** with explicit responsibility boundaries:
-```
+The application separates console interaction, application orchestration, pricing rules, and domain calculations into focused modules:
+
+```text
 src/home_services_quote_calculator/
-├── app.py # Application orchestration and menu loop
-├── ui.py # Console input/output and validation
-├── pricing.py # Centralized pricing rules and constants
-├── quotes.py # Domain quote models and calculations
-└── models.py # Shared value objects (e.g., TimeHM)
+├── __init__.py
+├── __main__.py       # Package execution entry point
+├── app.py            # Application orchestration and menu loop
+├── ui.py             # Console input/output and input validation
+├── models.py         # Shared value objects such as TimeHM
+├── pricing.py        # Centralized pricing rules and calculations
+├── house_quotes.py   # House-cleaning quote domain model
+├── yard_quotes.py    # Yard-service quote domain model
+└── quotes.py         # Public quote-model re-exports
 ```
 
 ### Key Design Decisions
 
-**Separation of concerns**  
-User interaction, pricing rules, and business calculations are isolated into dedicated modules.
+**Separation of concerns**
+User interaction, application flow, pricing rules, and business calculations are isolated into dedicated modules.
 
-**No global state**  
-All data flows through objects, improving testability and predictability.
+**No global application state**
+Quote data flows through domain objects, improving predictability and testability.
 
-**Rule centralization**  
-Pricing logic is defined in one place (`pricing.py`) to avoid duplication and drift.
+**Centralized pricing rules**
+Shared pricing constants and calculations are maintained in `pricing.py` to reduce duplication and pricing-rule drift.
 
-**Domain-driven modeling**  
-Each quote type encapsulates its own calculations and validation rules.
+**Domain-focused models**
+`HouseCleaningQuote` and `YardServiceQuote` encapsulate the calculations and validation rules associated with their respective services.
 
-**Defensive validation**  
-Invalid domain states (e.g., end time before start time) are rejected at object creation.
+**Defensive validation**
+Invalid domain states, including non-positive property sizes, negative service quantities, invalid times, and yard-service end times that do not occur after their start times, are rejected before calculations proceed.
 
 ---
 
 ## Core Components
 
 ### `HouseCleaningQuote`
-Handles:
-- Tier-based pricing by square footage
-- Per-room service costs
-- Square-footage surcharges
+
+Calculates house-cleaning estimates using:
+
+- Property-size pricing tiers
+- Carpet cleaning
+- Bathroom cleaning
+- Dusting
+- Large-property square-footage surcharges
 - Optional thorough-cleaning fees
-- Senior discounts and sales tax
+- Senior discounts
+- Sales tax
 
 ### `YardServiceQuote`
-Handles:
-- Mowing, edging, and shrub services
-- Labor cost derived from validated time ranges
-- Yard-size-based hourly surcharges
-- Senior discounts and sales tax
+
+Calculates yard-service estimates using:
+
+- Mowing with a base charge plus size-based increments
+- Edging based on an estimated square-yard perimeter
+- Shrub pruning
+- Labor duration derived from validated start and end times
+- Large-yard hourly surcharges
+- Senior discounts
+- Sales tax
 
 ### `PriceRules`
-Defines all pricing constants and rate calculations used throughout the system.
+
+Centralizes pricing constants and shared calculations used by the quote models, keeping pricing policy separate from application and user-interface logic.
+
+### `TimeHM`
+
+Represents validated hours and minutes used by yard-service labor calculations. The CLI accepts several common 12-hour and 24-hour time formats and converts them into this domain value object.
 
 ---
 
-## Build & Run
+## Requirements
 
-### Requirements
-- Python 3.9+
+- Python 3.11+
 
-### Setup
+---
+
+## Setup
+
+Clone the repository and create a virtual environment:
+
 ```bash
 python -m venv .venv
 source .venv/bin/activate
+```
+
+Install the project and development dependencies:
+
+```bash
 python -m pip install --upgrade pip
-pip install -e ".[dev]"
+python -m pip install -e ".[dev]"
 ```
 
 ---
 
 ## Run
+
+After installation, run the application using the console entry point:
+
+```bash
+home-services-quote
+```
+
+The package can also be executed directly:
+
 ```bash
 python -m home_services_quote_calculator
 ```
 
+The application supports house-cleaning quotes, yard-service quotes, or a combined estimate.
+
 ---
 
 ## Testing
-The project includes a fully automated pytest suite:
-- Unit tests for domain calculations
-- Validation tests for edge cases and error conditions
-- CLI smoke tests verifying startup, exit behavior, and output
 
-### Run tests
+The project includes **91 automated pytest tests** covering:
+
+- House-cleaning pricing calculations
+- Yard-service pricing calculations
+- Pricing boundaries and surcharges
+- Discounts and tax calculations
+- Domain validation and invalid states
+- Time validation and supported input formats
+- CLI input handling and retry behavior
+- House, yard, and combined CLI workflows
+
+Run the complete test suite with:
+
 ```bash
-pytest
+./scripts/test.sh
 ```
-All tests pass on a clean checkout and are automatically executed in CI.
+
+Tests can also be executed directly with:
+
+```bash
+python -m pytest
+```
+
+---
+
+## Code Quality
+
+[Ruff](https://docs.astral.sh/ruff/) is used for static analysis and Python code-quality checks.
+
+Run Ruff with:
+
+```bash
+python -m ruff check src tests
+```
+
+---
+
+## Build
+
+The project uses `pyproject.toml` and setuptools for Python packaging.
+
+Build the source distribution and wheel with:
+
+```bash
+python -m build
+```
+
+Successful builds are written to the `dist/` directory.
+
+---
+
+## Continuous Integration
+
+GitHub Actions validates the project on pushes and pull requests to `main`.
+
+The CI workflow:
+
+1. Checks out the repository
+2. Configures Python 3.11
+3. Installs the project and development dependencies
+4. Runs Ruff static analysis
+5. Runs the automated pytest suite
+
+This ensures both code-quality checks and behavioral tests must pass during normal repository development.
 
 ---
 
 ## Engineering Focus
+
 This project emphasizes:
+
 - Object-oriented design
-- Modular, maintainable architecture
+- Modular application architecture
+- Separation of concerns
 - Business-rule-driven computation
 - Defensive input and domain validation
 - Deterministic, testable logic
-- Professional Python packaging
-- Continuous integration with automated testing
+- Automated unit and CLI testing
+- Python packaging and console entry points
+- Static code-quality analysis
+- Continuous integration
 
-The codebase is intentionally structured to support future extensions such as:
-- Web or GUI interfaces
-- Persistent storage
-- API-based quote generation
-- Externalized configuration
+The architecture also leaves room for future extensions such as persistent storage, alternative user interfaces, API-based quote generation, or externally configured pricing rules.
 
 ---
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
----
-
-
-
-
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

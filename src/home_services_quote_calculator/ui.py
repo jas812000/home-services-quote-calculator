@@ -8,10 +8,9 @@ It is responsible for all user interaction (printing menus, reading input,
 and displaying results) so that business logic remains separate.
 """
 
-from typing import Optional
 from .house_quotes import HouseCleaningQuote
-from .yard_quotes import YardServiceQuote
 from .models import TimeHM
+from .yard_quotes import YardServiceQuote
 
 
 class ConsoleUI:
@@ -43,17 +42,17 @@ class ConsoleUI:
         print("Dusting: Small $60 | Medium $80 | Large $100")
         print("Surcharge: $2.50 per sq ft over 3,000\n")
         print("Yard Services:")
-        print("Mowing: $6.00 per sq ft")
-        print("Edging: $4.00 per linear ft")
+        print("Mowing: $45 base + $15 per 1,000 sq ft (rounded up)")
+        print("Edging: $4.00 per estimated linear ft (based on yard square footage)")
         print("Shrub Pruning: $25 per shrub")
-        print("Labor: $80/hr + surcharge for large yards\n")
+        print("Labor: $80/hr + $35/hr per 2,000 sq ft increment over 5,000 sq ft\n")
 
     @staticmethod
     def read_int(
-        prompt: str,
-        min_val: int | None = None,
-        max_val: int | None = None,
-        allowed: set[int] | None = None,
+            prompt: str,
+            min_val: int | None = None,
+            max_val: int | None = None,
+            allowed: set[int] | None = None,
     ) -> int:
         """
         Read an integer from stdin and validate it.
@@ -75,28 +74,97 @@ class ConsoleUI:
         """
         while True:
             try:
-                v = int(input(prompt))
+                value = int(input(prompt))
+            except ValueError:
+                print("Please enter a valid integer.")
+                continue
 
-                if allowed is not None:
-                    if v not in allowed:
-                        print(f"Please enter one of: {sorted(allowed)}")
-                        continue
-                    return v
+            if allowed is not None and value not in allowed:
+                print(f"Please enter one of: {sorted(allowed)}")
+                continue
 
-                if min_val is not None and v < min_val:
+            if allowed is None:
+                if min_val is not None and value < min_val:
                     print(f"Enter a value >= {min_val}.")
                     continue
 
-                if max_val is not None and v > max_val:
+                if max_val is not None and value > max_val:
                     print(f"Enter a value <= {max_val}.")
                     continue
 
-                return v
+            return value
+
+    @staticmethod
+    def read_time(prompt: str) -> TimeHM:
+        """
+        Read a time in common 12-hour or 24-hour formats.
+
+        Examples:
+            0700
+            07:00
+            7 am
+            7:00 am
+            7 AM
+            7:00 AM
+            1900
+            19:00
+
+        Args:
+            prompt (str): Prompt text shown to the user.
+
+        Returns:
+            TimeHM: Validated time converted to 24-hour representation.
+        """
+        while True:
+            value = input(prompt).strip().upper()
+
+            try:
+                period = None
+
+                if value.endswith(("AM", "PM")):
+                    period = value[-2:]
+                    value = value[:-2].strip()
+
+                if ":" in value:
+                    hour_text, minute_text = value.split(":", 1)
+                    hour = int(hour_text)
+                    minute = int(minute_text)
+                else:
+                    digits = value.replace(" ", "")
+
+                    if not digits.isdigit():
+                        raise ValueError
+
+                    if period is not None and len(digits) <= 2:
+                        hour = int(digits)
+                        minute = 0
+                    elif len(digits) in {3, 4}:
+                        hour = int(digits[:-2])
+                        minute = int(digits[-2:])
+                    else:
+                        raise ValueError
+
+                if not 0 <= minute <= 59:
+                    raise ValueError
+
+                if period is not None:
+                    if not 1 <= hour <= 12:
+                        raise ValueError
+
+                    if period == "AM":
+                        hour = 0 if hour == 12 else hour
+                    else:
+                        hour = 12 if hour == 12 else hour + 12
+                elif not 0 <= hour <= 23:
+                    raise ValueError
+
+                return TimeHM(hour, minute)
 
             except ValueError:
-                print("Please enter a valid integer.")
-
-        raise RuntimeError("Unreachable code")
+                print(
+                    "Enter a valid time, such as 0700, 07:00, "
+                    "7 AM, or 7:00 AM."
+                )
 
     @staticmethod
     def read_yes_no(prompt: str) -> bool:
@@ -131,7 +199,7 @@ class ConsoleUI:
 
         return self.read_int("Selection: ", allowed={1, 2, 3, 9})
 
-    def build_house_quote(self, age: int) -> Optional[HouseCleaningQuote]:
+    def build_house_quote(self, age: int) -> HouseCleaningQuote:
         """
         Collect inputs and create a HouseCleaningQuote.
 
@@ -146,7 +214,6 @@ class ConsoleUI:
         carpet_rooms = self.read_int("Carpet rooms: ", 0)
         bathrooms = self.read_int("Bathrooms: ", 0)
         dust_rooms = self.read_int("Rooms to dust: ", 0)
-       
 
         return HouseCleaningQuote(
             house_sqft=house_sqft,
@@ -157,7 +224,7 @@ class ConsoleUI:
             is_senior=age >= 65
         )
 
-    def build_yard_quote(self, age: int) -> Optional[YardServiceQuote]:
+    def build_yard_quote(self, age: int) -> YardServiceQuote:
         """
         Collect inputs and create a YardServiceQuote.
 
@@ -171,14 +238,8 @@ class ConsoleUI:
         shrubs = self.read_int("Number of shrubs: ", 0)
 
         while True:
-            start = TimeHM(
-                self.read_int("Start hour: ", 0, 23),
-                self.read_int("Start minute: ", 0, 59),
-            )
-            end = TimeHM(
-                self.read_int("End hour: ", 0, 23),
-                self.read_int("End minute: ", 0, 59),
-            )
+            start = self.read_time("Start time (e.g., 7:00 AM): ")
+            end = self.read_time("End time (e.g., 4:00 PM): ")
 
             try:        
                 return YardServiceQuote(
@@ -188,24 +249,29 @@ class ConsoleUI:
                     end=end,
                     is_senior=age >= 65,
                 )
-            except ValueError as e:
-                print(f"\nInvalid yard time range:")
-                print(f"End time must be after start time.")
-                print(f"Try again.\n")
+            except ValueError:
+                print("\nInvalid yard time range:")
+                print("End time must be after start time.")
+                print("Try again.\n")
 
     @staticmethod
-    def print_itemized(title: str, items: list[tuple[str, float]]) -> None:
+    def print_itemized(title: str, items: list[tuple[str, str, float]]) -> None:
         """
         Print an itemized list of charges.
 
         Args:
             title (str): Title of the quote section.
-            items (list[tuple[str, float]]): Itemized charges as (label, amount).
+            items (list[tuple[str, str, float]]): Service, calculation detail,
+                and amount for each charge.
         """
         print(f"\n{title} breakdown:")
-        for label, amount in items:
-            sign = "-" if amount < 0 else ""
-            print(f"  {label:<25} {sign}${abs(amount):.2f}")
+
+        for label, calculation, amount in items:
+            formatted_amount = f"${abs(amount):,.2f}"
+            if amount < 0:
+                formatted_amount = f"-{formatted_amount}"
+
+            print(f"  {label:<24} {calculation:<38} {formatted_amount:>12}")
 
     @staticmethod
     def print_total(label: str, amount: float) -> None:
@@ -219,4 +285,4 @@ class ConsoleUI:
         Returns:
             None
         """
-        print(f"\n{label} total: ${amount:.2f}")
+        print(f"\n{label} total: ${amount:,.2f}")

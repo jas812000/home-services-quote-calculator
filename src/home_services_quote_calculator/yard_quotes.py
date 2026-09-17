@@ -4,9 +4,11 @@ yard_quotes.py
 Yard service quote domain model.
 """
 
+import math
 from dataclasses import dataclass
-from .pricing import PriceRules
+
 from .models import TimeHM
+from .pricing import PriceRules
 
 
 @dataclass
@@ -39,14 +41,8 @@ class YardServiceQuote:
 
         Returns:
             float: Number of labor hours worked.
-
-        Raises:
-            ValueError: If the end time is not after start time.
         """
-        hours = self.end.as_hours() - self.start.as_hours()
-        if hours <= 0:
-            raise ValueError("End time must be after start time.")
-        return hours
+        return self.end.as_hours() - self.start.as_hours()
 
     def hourly_surcharge(self) -> float:
         """
@@ -109,31 +105,77 @@ class YardServiceQuote:
         """
         return self.subtotal() - self.discount() + self.tax()
 
-    def items(self) -> list[tuple[str, float]]:
+    def items(self) -> list[tuple[str, str, float]]:
         """
         Return an itemized cost breakdown for the yard service quote.
 
         Returns:
-            list[tuple[str, float]]: Line items and their costs.
+            list[tuple[str, str, float]]: Service, calculation detail, and cost.
         """
-        items: list[tuple[str, float]] = [
-            ("Mowing", PriceRules.mowing_cost(self.yard_sqft)),
-            ("Edging", PriceRules.edging_cost(self.yard_sqft)),
-            ("Shrub pruning", PriceRules.shrub_cost(self.shrubs)),
-            ("Labor", self.labor_cost()),
+        perimeter = PriceRules.estimated_yard_perimeter(self.yard_sqft)
+        labor_hours = self.labor_hours()
+        base_labor_rate = PriceRules.labor_rate_base()
+        hourly_surcharge = self.hourly_surcharge()
+
+        items: list[tuple[str, str, float]] = [
+            (
+                "Mowing",
+                f"$45 base + {math.ceil(self.yard_sqft / 1000)} × $15 per 1,000 sq ft",
+                PriceRules.mowing_cost(self.yard_sqft),
+            ),
+            (
+                "Edging",
+                f"{perimeter:,.1f} estimated linear ft × $4.00",
+                PriceRules.edging_cost(self.yard_sqft),
+            ),
+            (
+                "Shrub Pruning",
+                f"{self.shrubs} shrubs × $25.00",
+                PriceRules.shrub_cost(self.shrubs),
+            ),
+            (
+                "Labor",
+                f"{labor_hours:.2f} hr × ${base_labor_rate:,.2f}/hr",
+                labor_hours * base_labor_rate,
+            ),
         ]
 
-        if self.is_senior:
-            items.append(("Senior discount", -self.discount()))
+        if hourly_surcharge > 0:
+            items.append(
+                (
+                    "Large Yard Surcharge",
+                    f"{labor_hours:.2f} hr × ${hourly_surcharge:,.2f}/hr",
+                    labor_hours * hourly_surcharge,
+                )
+            )
 
-        items.append(("Tax", self.tax()))
+        if self.is_senior:
+            items.append(
+                (
+                    "Senior Discount",
+                    f"{PriceRules.SENIOR_DISCOUNT:.0%} of ${self.subtotal():,.2f}",
+                    -self.discount(),
+                )
+            )
+
+        taxable = self.subtotal() - self.discount()
+        items.append(
+            (
+                "Tax",
+                f"{PriceRules.TAX_RATE:.0%} of ${taxable:,.2f}",
+                self.tax(),
+            )
+        )
 
         return items
-    
-    def __post_init__(self) -> None:
-        start_minutes = self.start.hour * 60 + self.start.minute
-        end_minutes = self.end.hour * 60 + self.end.minute
-        if end_minutes <= start_minutes:
-            raise ValueError("end must be after start")
-   
 
+    def __post_init__(self) -> None:
+        """Validate yard service quote inputs."""
+        if self.yard_sqft <= 0:
+            raise ValueError("Yard square footage must be greater than 0.")
+
+        if self.shrubs < 0:
+            raise ValueError("Shrub count cannot be negative.")
+
+        if self.end.as_hours() <= self.start.as_hours():
+            raise ValueError("End time must be after start time.")
