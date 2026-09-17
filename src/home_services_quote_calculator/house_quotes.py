@@ -5,6 +5,7 @@ House cleaning quote domain model.
 """
 
 from dataclasses import dataclass
+
 from .pricing import PriceRules
 
 
@@ -35,6 +36,20 @@ class HouseCleaningQuote:
 
     is_senior: bool
     """Whether the customer qualifies for a senior discount."""
+
+    def __post_init__(self) -> None:
+        """Validate house cleaning quote inputs."""
+        if self.house_sqft <= 0:
+            raise ValueError("House square footage must be greater than 0.")
+
+        if self.carpet_rooms < 0:
+            raise ValueError("Carpet rooms cannot be negative.")
+
+        if self.bathrooms < 0:
+            raise ValueError("Bathrooms cannot be negative.")
+
+        if self.dust_rooms < 0:
+            raise ValueError("Dust rooms cannot be negative.")
 
     def tier(self) -> str:
         """
@@ -99,30 +114,74 @@ class HouseCleaningQuote:
         """
         return (self.subtotal() + self.service_fee()) - self.discount() + self.tax()
 
-    def items(self) -> list[tuple[str, float]]:
+    def items(self) -> list[tuple[str, str, float]]:
         """
         Return an itemized cost breakdown for the house cleaning quote.
 
         Returns:
-            list[tuple[str, float]]: Line items and their costs.
+            list[tuple[str, str, float]]: Service, calculation detail, and cost.
         """
-        t = self.tier()
-        items: list[tuple[str, float]] = [
-            ("Carpet cleaning", self.carpet_rooms * PriceRules.carpet_rate(t)),
-            ("Bathroom cleaning", self.bathrooms * PriceRules.bathroom_rate(t)),
-            ("Dusting", self.dust_rooms * PriceRules.dust_rate(t)),
+        tier = self.tier()
+
+        carpet_rate = PriceRules.carpet_rate(tier)
+        bathroom_rate = PriceRules.bathroom_rate(tier)
+        dust_rate = PriceRules.dust_rate(tier)
+
+        items: list[tuple[str, str, float]] = [
+            (
+                "Carpet Cleaning",
+                f"{self.carpet_rooms} rooms × ${carpet_rate:,.2f}",
+                self.carpet_rooms * carpet_rate,
+            ),
+            (
+                "Bathroom Cleaning",
+                f"{self.bathrooms} {'bathroom' if self.bathrooms == 1 else 'bathrooms'} × ${bathroom_rate:,.2f}",
+                self.bathrooms * bathroom_rate,
+            ),
+            (
+                "Dusting",
+                f"{self.dust_rooms} rooms × ${dust_rate:,.2f}",
+                self.dust_rooms * dust_rate,
+            ),
         ]
 
         sqft_surcharge = PriceRules.house_sqft_surcharge(self.house_sqft)
         if sqft_surcharge > 0:
-            items.append(("Large house surcharge", sqft_surcharge))
+            excess_sqft = self.house_sqft - 3000
+            items.append(
+                (
+                    "Large House Surcharge",
+                    f"{excess_sqft:,} sq ft × $2.50",
+                    sqft_surcharge,
+                )
+            )
 
         if self.thorough:
-            items.append(("Thorough cleaning fee", self.service_fee()))
+            items.append(
+                (
+                    "Thorough Cleaning Fee",
+                    f"{PriceRules.THOROUGH_FEE:.0%} of ${self.subtotal():,.2f}",
+                    self.service_fee(),
+                )
+            )
 
         if self.is_senior:
-            items.append(("Senior discount", -self.discount()))
+            discount_base = self.subtotal() + self.service_fee()
+            items.append(
+                (
+                    "Senior Discount",
+                    f"{PriceRules.SENIOR_DISCOUNT:.0%} of ${discount_base:,.2f}",
+                    -self.discount(),
+                )
+            )
 
-        items.append(("Tax", self.tax()))
+        taxable = (self.subtotal() + self.service_fee()) - self.discount()
+        items.append(
+            (
+                "Tax",
+                f"{PriceRules.TAX_RATE:.0%} of ${taxable:,.2f}",
+                self.tax(),
+            )
+        )
 
         return items

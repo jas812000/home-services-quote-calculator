@@ -8,22 +8,26 @@ version = "0.1.0"
 description = "CLI quote calculator for house cleaning and yard services."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { file = "LICENSE" }
+license = "MIT"
 authors = [{ name = "James Stevens" }]
 keywords = ["cli", "pricing", "quotes", "python"]
 classifiers = [
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
 ]
 
 dependencies = []
 
+[project.scripts]
+home-services-quote = "home_services_quote_calculator.app:main"
+
 [project.optional-dependencies]
 dev = [
+  "build>=1.2",
   "pytest>=8.0",
+  "ruff>=0.13",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-v"

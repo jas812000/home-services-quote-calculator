@@ -37,27 +37,23 @@ def main() -> None:
 
         if choice == 1:
             house = ui_obj.build_house_quote(age)
-            if house:
-                ui_obj.print_itemized("House", house.items())
-                ui_obj.print_total("House", house.total())
+            ui_obj.print_itemized("House", house.items())
+            ui_obj.print_total("House", house.total())
 
         elif choice == 2:
             yard = ui_obj.build_yard_quote(age)
-            if yard:
-                ui_obj.print_itemized("Yard", yard.items())
-                ui_obj.print_total("Yard", yard.total())
+            ui_obj.print_itemized("Yard", yard.items())
+            ui_obj.print_total("Yard", yard.total())
 
         elif choice == 3:
             house = ui_obj.build_house_quote(age)
             yard = ui_obj.build_yard_quote(age)
 
-            if house:
-                ui_obj.print_itemized("House", house.items())
-                ui_obj.print_total("House", house.total())
+            ui_obj.print_itemized("House", house.items())
+            ui_obj.print_total("House", house.total())
 
-            if yard:
-                ui_obj.print_itemized("Yard", yard.items())
-                ui_obj.print_total("Yard", yard.total())
+            ui_obj.print_itemized("Yard", yard.items())
+            ui_obj.print_total("Yard", yard.total())
 
             ui_obj.print_total("Combined", house.total() + yard.total())
 
